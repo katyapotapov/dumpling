@@ -254,7 +254,7 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s path/to/journal/file.txt", argv[0]);
+        fprintf(stderr, "Usage: %s path/to/journal/file.txt\n", argv[0]);
         return 1;
     }
 
