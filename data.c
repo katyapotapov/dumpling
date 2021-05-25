@@ -195,7 +195,6 @@ const Text* FindText(const Data* data, const char* name) {
     return NULL;
 }
 
-
 void DestroyData(Data* data) {
     for (int i = 0; i < data->imageCount; ++i) {
         tigrFree(data->images[i].image);
