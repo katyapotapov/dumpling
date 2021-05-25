@@ -25,6 +25,7 @@
 #define ENT_POS_CENTER -1000
 #define ENT_POS_LEFT_PAD -1001
 #define ENT_POS_RIGHT_PAD -1002
+#define ENT_POS_HIDDEN -1003
 
 typedef struct Tigr Tigr;
 

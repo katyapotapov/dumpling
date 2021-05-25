@@ -94,7 +94,7 @@ static void ParseSound(Sound* sound, FILE* f) {
 
     sound->loaded = cs_load_wav(filename);
 
-    if(!sound->loaded.channels[0]) {
+    if (!sound->loaded.channels[0]) {
         tigrError(NULL, "Failed to load sound: %s", cs_error_reason);
     }
 
@@ -120,6 +120,10 @@ static int ConvertPos(const char* s) {
 
     if (s[0] == 'r') {
         return ENT_POS_RIGHT_PAD;
+    }
+
+    if (s[0] == 'h') {
+        return ENT_POS_HIDDEN;
     }
 
     return atoi(s);

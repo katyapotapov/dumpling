@@ -15,8 +15,18 @@
 #include "graphic.h"
 #include "tigr.h"
 
-static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
-                       int* w, int* h) {
+static const BoxLayout* FindBox(const Page* page, const char* name) {
+    for (int i = 0; i < page->boxCount; ++i) {
+        if (strcmp(page->boxes[i].name, name) == 0) {
+            return &page->boxes[i];
+        }
+    }
+
+    return NULL;
+}
+
+static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page,
+                       float pageTime, int* w, int* h) {
     int ww = 0;
     int hh = 0;
 
@@ -31,10 +41,16 @@ static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
 
         const char* name = box->children[i];
 
+        const BoxLayout* childBox = FindBox(page, name);
+
         int gw = 0;
         int gh = 0;
 
-        MeasureGraphic(data, name, &gw, &gh);
+        if (childBox) {
+            MeasureBox(childBox, data, page, pageTime, &gw, &gh);
+        } else {
+            MeasureGraphic(data, name, &gw, &gh);
+        }
 
         if (!box->vert) {
             ww += gw;
@@ -55,16 +71,24 @@ static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
     *h = hh;
 }
 
-static void DrawBox(Tigr* screen, const Data* data, float pageTime,
-                    const BoxLayout* box) {
-    // TODO Nested boxes
+static void DrawBox(Tigr* screen, const Data* data, const Page* page,
+                    float pageTime, const BoxLayout* box, int parentX,
+                    int parentY) {
     int w = 0;
     int h = 0;
 
-    MeasureBox(box, data, pageTime, &w, &h);
+    MeasureBox(box, data, page, pageTime, &w, &h);
 
-    int x = HandleSpecialPos(box->x, screen->w, w);
-    int y = HandleSpecialPos(box->y, screen->h, h);
+    int x = 0;
+    int y = 0;
+
+    if (parentX == 0 && parentY == 0) {
+        x = HandleSpecialPos(box->x, screen->w, w);
+        y = HandleSpecialPos(box->y, screen->h, h);
+    } else {
+        x = parentX;
+        y = parentY;
+    }
 
     int xx = 0;
     int yy = 0;
@@ -80,10 +104,16 @@ static void DrawBox(Tigr* screen, const Data* data, float pageTime,
 
         const char* name = box->children[i];
 
+        const BoxLayout* childBox = FindBox(page, name);
+
         int gw = 0;
         int gh = 0;
 
-        MeasureGraphic(data, name, &gw, &gh);
+        if (childBox) {
+            MeasureBox(childBox, data, page, pageTime, &gw, &gh);
+        } else {
+            MeasureGraphic(data, name, &gw, &gh);
+        }
 
         int ox = 0;
         int oy = 0;
@@ -95,7 +125,12 @@ static void DrawBox(Tigr* screen, const Data* data, float pageTime,
             ox = w / 2 - gw / 2;
         }
 
-        DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy);
+        if (childBox) {
+            DrawBox(screen, data, page, pageTime, childBox, x + xx + ox,
+                    y + yy + oy);
+        } else {
+            DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy);
+        }
 
         if (!box->vert) {
             xx += gw;
@@ -117,7 +152,7 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
     }
 
     for (int i = 0; i < page->boxCount; ++i) {
-        DrawBox(screen, data, pageTime, &page->boxes[i]);
+        DrawBox(screen, data, page, pageTime, &page->boxes[i], 0, 0);
     }
 }
 

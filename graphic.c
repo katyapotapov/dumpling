@@ -33,6 +33,9 @@ int HandleSpecialPos(int pos, int screenSize, int size) {
         case ENT_POS_RIGHT_PAD:
             return screenSize - size - 8;
 
+        case ENT_POS_HIDDEN:
+            return -size;
+
         default:
             return pos;
     }
