@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __linux__
+
+#include <SDL2/SDL.h>
+#define CUTE_SOUND_FORCE_SDL
+
+#endif
+
+#define CUTE_SOUND_IMPLEMENTATION
+
+#include "cute_sound.h"
 #include "data.h"
 #include "graphic.h"
 #include "tigr.h"
@@ -111,6 +121,23 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
+static void PlayPageSounds(cs_context_t* ctx, const Data* data,
+                           const Page* page) {
+    if (cs_get_playing(ctx)) {
+        cs_stop_all_sounds(ctx);
+    }
+
+    for (int i = 0; i < page->soundPlayerCount; ++i) {
+        const Sound* sound = FindSound(data, page->soundPlayers[i].soundName);
+
+        if (!sound) {
+            continue;
+        }
+
+        cs_play_sound(ctx, sound->sound);
+    }
+}
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s path/to/journal/file.txt\n", argv[0]);
@@ -127,7 +154,26 @@ int main(int argc, char** argv) {
 
     Tigr* screen = tigrWindow(640, 480, "Dumpling", 0);
 
+#ifdef __linux__
+    if (SDL_Init(SDL_INIT_AUDIO) != 0) {
+        tigrError(screen, "Failed to init SDL: %s", SDL_GetError());
+    }
+#endif
+
+    cs_context_t* ctx =
+        cs_make_context(screen->handle, 44100, 0, MAX_SOUND_PLAYERS, NULL);
+
+    if (!ctx) {
+        tigrError(screen, "Failed to init audio: %s", cs_error_reason);
+    }
+
     (void)tigrTime();
+
+    if (data.pageCount == 0) {
+        tigrError(screen, "No pages in the journal.");
+    }
+
+    int prevPageIndex = -1;
 
     while (!tigrClosed(screen)) {
         tigrClear(screen, tigrRGB(0x80, 0x90, 0xa0));
@@ -154,8 +200,21 @@ int main(int argc, char** argv) {
             }
         }
 
+        if (pageIndex != prevPageIndex) {
+            PlayPageSounds(ctx, &data, &data.pages[pageIndex]);
+        }
+
+        prevPageIndex = pageIndex;
+
         tigrUpdate(screen);
+        cs_mix(ctx);
     }
+
+    cs_shutdown_context(ctx);
+
+#ifdef __linux__
+    SDL_Quit();
+#endif
 
     tigrFree(screen);
 

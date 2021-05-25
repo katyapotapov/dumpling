@@ -4,12 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cute_sound.h"
 #include "tigr.h"
 
 static Image ParseImage(FILE* f) {
     Image image = {0};
 
-    char filename[128];
+    char filename[256];
     int scale = 1;
 
     fscanf(f, "%s %d %s", image.name, &scale, filename);
@@ -86,6 +87,20 @@ static Text ParseText(FILE* f, bool multi) {
     return text;
 }
 
+static void ParseSound(Sound* sound, FILE* f) {
+    char filename[256];
+
+    fscanf(f, "%s %s", sound->name, filename);
+
+    sound->loaded = cs_load_wav(filename);
+
+    if(!sound->loaded.channels[0]) {
+        tigrError(NULL, "Failed to load sound: %s", cs_error_reason);
+    }
+
+    sound->sound = cs_make_def(&sound->loaded);
+}
+
 static Page ParsePage(FILE* f) {
     Page page = {0};
 
@@ -144,6 +159,14 @@ static BoxLayout ParseBox(FILE* f, bool vert) {
     return box;
 }
 
+static SoundPlayer ParseSoundPlayer(FILE* f) {
+    SoundPlayer sp = {0};
+
+    fscanf(f, "%s %s", sp.name, sp.soundName);
+
+    return sp;
+}
+
 void InitData(Data* data) { memset(data, 0, sizeof(*data)); }
 
 void LoadData(Data* data, const char* filename) {
@@ -162,6 +185,8 @@ void LoadData(Data* data, const char* filename) {
             data->texts[data->textCount++] = ParseText(f, false);
         } else if (strcmp(cmd, "mtext") == 0) {
             data->texts[data->textCount++] = ParseText(f, true);
+        } else if (strcmp(cmd, "sound") == 0) {
+            ParseSound(&data->sounds[data->soundCount++], f);
         } else if (strcmp(cmd, "page") == 0) {
             curPage = &data->pages[data->pageCount];
             data->pages[data->pageCount++] = ParsePage(f);
@@ -171,6 +196,9 @@ void LoadData(Data* data, const char* filename) {
             curPage->boxes[curPage->boxCount++] = ParseBox(f, false);
         } else if (strcmp(cmd, "vbox") == 0) {
             curPage->boxes[curPage->boxCount++] = ParseBox(f, true);
+        } else if (strcmp(cmd, "splayer") == 0) {
+            curPage->soundPlayers[curPage->soundPlayerCount++] =
+                ParseSoundPlayer(f);
         }
     }
 }
@@ -195,7 +223,21 @@ const Text* FindText(const Data* data, const char* name) {
     return NULL;
 }
 
+const Sound* FindSound(const Data* data, const char* name) {
+    for (int j = 0; j < data->soundCount; ++j) {
+        if (strcmp(data->sounds[j].name, name) == 0) {
+            return &data->sounds[j];
+        }
+    }
+
+    return NULL;
+}
+
 void DestroyData(Data* data) {
+    for (int i = 0; i < data->soundCount; ++i) {
+        cs_free_sound(&data->sounds[i].loaded);
+    }
+
     for (int i = 0; i < data->imageCount; ++i) {
         tigrFree(data->images[i].image);
     }
