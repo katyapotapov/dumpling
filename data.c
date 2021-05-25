@@ -175,6 +175,27 @@ void LoadData(Data* data, const char* filename) {
     }
 }
 
+const Image* FindImage(const Data* data, const char* name) {
+    for (int j = 0; j < data->imageCount; ++j) {
+        if (strcmp(data->images[j].name, name) == 0) {
+            return &data->images[j];
+        }
+    }
+
+    return NULL;
+}
+
+const Text* FindText(const Data* data, const char* name) {
+    for (int j = 0; j < data->textCount; ++j) {
+        if (strcmp(data->texts[j].name, name) == 0) {
+            return &data->texts[j];
+        }
+    }
+
+    return NULL;
+}
+
+
 void DestroyData(Data* data) {
     for (int i = 0; i < data->imageCount; ++i) {
         tigrFree(data->images[i].image);

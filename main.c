@@ -2,44 +2,8 @@
 #include <string.h>
 
 #include "data.h"
+#include "graphic.h"
 #include "tigr.h"
-
-static const Image* FindImage(const Data* data, const char* name) {
-    for (int j = 0; j < data->imageCount; ++j) {
-        if (strcmp(data->images[j].name, name) == 0) {
-            return &data->images[j];
-        }
-    }
-
-    return NULL;
-}
-
-static const Text* FindText(const Data* data, const char* name) {
-    for (int j = 0; j < data->textCount; ++j) {
-        if (strcmp(data->texts[j].name, name) == 0) {
-            return &data->texts[j];
-        }
-    }
-
-    return NULL;
-}
-
-static void GetTimedText(const Text* text, char* dest, float pageTime) {
-    if (text->charsPerSec == 0) {
-        strcpy(dest, text->str);
-        return;
-    }
-
-    int maxLen = (int)strlen(text->str);
-
-    int len = (int)(pageTime * text->charsPerSec);
-
-    if (len > maxLen) {
-        len = maxLen;
-    }
-
-    memcpy(dest, text->str, len);
-}
 
 static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
                        int* w, int* h) {
@@ -57,51 +21,23 @@ static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
 
         const char* name = box->children[i];
 
-        const Image* image = FindImage(data, name);
+        int gw = 0;
+        int gh = 0;
 
-        if (image) {
-            if (!box->vert) {
-                ww += image->image->w;
+        MeasureGraphic(data, name, &gw, &gh);
 
-                if (image->image->h > hh) {
-                    hh = image->image->h;
-                }
-            } else {
-                hh += image->image->h;
+        if (!box->vert) {
+            ww += gw;
 
-                if (image->image->w > ww) {
-                    ww = image->image->w;
-                }
+            if (gh > hh) {
+                hh = gh;
             }
+        } else {
+            hh += gh;
 
-            continue;
-        }
-
-        const Text* text = FindText(data, name);
-
-        if (text) {
-            char sub[MAX_TEXT_LEN] = {0};
-
-            GetTimedText(text, sub, pageTime);
-
-            int tw = tigrTextWidth(tfont, text->str);
-            int th = tigrTextHeight(tfont, text->str);
-
-            if (!box->vert) {
-                ww += tw;
-
-                if (th > hh) {
-                    hh = th;
-                }
-            } else {
-                hh += th;
-
-                if (tw > ww) {
-                    ww = tw;
-                }
+            if (gw > ww) {
+                ww = gw;
             }
-
-            continue;
         }
     }
 
@@ -109,24 +45,8 @@ static void MeasureBox(const BoxLayout* box, const Data* data, float pageTime,
     *h = hh;
 }
 
-static int HandleSpecialPos(int pos, int screenSize, int size) {
-    switch (pos) {
-        case ENT_POS_CENTER:
-            return screenSize / 2 - size / 2;
-
-        case ENT_POS_LEFT_PAD:
-            return 8;
-
-        case ENT_POS_RIGHT_PAD:
-            return screenSize - size - 8;
-
-        default:
-            return pos;
-    }
-}
-
-static void DrawBox(Tigr* screen, const Data* data, const Page* page,
-                    float pageTime, const BoxLayout* box) {
+static void DrawBox(Tigr* screen, const Data* data, float pageTime,
+                    const BoxLayout* box) {
     // TODO Nested boxes
     int w = 0;
     int h = 0;
@@ -150,105 +70,44 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
 
         const char* name = box->children[i];
 
-        const Image* image = FindImage(data, name);
+        int gw = 0;
+        int gh = 0;
 
-        if (image) {
-            int ox = 0;
-            int oy = 0;
+        MeasureGraphic(data, name, &gw, &gh);
 
-            // TODO Allow aligning to the start instead of just center aligning
-            if (!box->vert) {
-                oy = h / 2 - image->image->h / 2;
-            } else {
-                ox = w / 2 - image->image->w / 2;
-            }
+        int ox = 0;
+        int oy = 0;
 
-            tigrBlitAlpha(screen, image->image, x + xx + ox, y + yy + oy, 0, 0,
-                          image->image->w, image->image->h, 1);
-
-            if (!box->vert) {
-                xx += image->image->w;
-            } else {
-                yy += image->image->h;
-            }
-
-            continue;
+        // TODO Allow aligning to the start instead of just center aligning
+        if (!box->vert) {
+            oy = h / 2 - gh / 2;
+        } else {
+            ox = w / 2 - gw / 2;
         }
 
-        const Text* text = FindText(data, name);
+        DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy);
 
-        if (text) {
-            char sub[MAX_TEXT_LEN] = {0};
-
-            GetTimedText(text, sub, pageTime);
-
-            int ox = 0;
-            int oy = 0;
-
-            int ww = tigrTextWidth(tfont, text->str);
-            int hh = tigrTextHeight(tfont, text->str);
-
-            if (!box->vert) {
-                oy = h / 2 - hh / 2;
-            } else {
-                ox = w / 2 - ww / 2;
-            }
-
-            tigrPrint(screen, tfont, x + xx + ox, y + yy + oy,
-                      tigrRGB(255, 255, 255), sub);
-
-            if (!box->vert) {
-                xx += ww;
-            } else {
-                yy += hh;
-            }
-
-            continue;
+        if (!box->vert) {
+            xx += gw;
+        } else {
+            yy += gh;
         }
     }
 }
 
-static void DrawEntity(Tigr* screen, const Data* data, const Page* page,
-                       float pageTime, const Entity* ent) {
-    const Image* image = FindImage(data, ent->resName);
-
-    if (image) {
-        int x = HandleSpecialPos(ent->x, screen->w, image->image->w);
-        int y = HandleSpecialPos(ent->y, screen->h, image->image->h);
-
-        tigrBlitAlpha(screen, image->image, x, y, 0, 0, image->image->w,
-                      image->image->h, 1);
-
-        return;
-    }
-
-    const Text* text = FindText(data, ent->resName);
-
-    if (text) {
-        char substr[MAX_TEXT_LEN] = {0};
-
-        GetTimedText(text, substr, pageTime);
-
-        int tw = tigrTextWidth(tfont, text->str);
-        int th = tigrTextHeight(tfont, text->str);
-
-        int x = HandleSpecialPos(ent->x, screen->w, tw);
-        int y = HandleSpecialPos(ent->y, screen->h, th);
-
-        tigrPrint(screen, tfont, x, y, tigrRGB(255, 255, 255), substr);
-
-        return;
-    }
+static void DrawEntity(Tigr* screen, const Data* data, float pageTime,
+                       const Entity* ent) {
+    DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y);
 }
 
 static void DrawPage(Tigr* screen, const Data* data, const Page* page,
                      float pageTime) {
     for (int i = 0; i < page->entCount; ++i) {
-        DrawEntity(screen, data, page, pageTime, &page->ents[i]);
+        DrawEntity(screen, data, pageTime, &page->ents[i]);
     }
 
     for (int i = 0; i < page->boxCount; ++i) {
-        DrawBox(screen, data, page, pageTime, &page->boxes[i]);
+        DrawBox(screen, data, pageTime, &page->boxes[i]);
     }
 }
 

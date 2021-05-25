@@ -1,0 +1,7 @@
+
+text hello 30
+Hello, world!
+
+page hello
+
+ent t1 c c hello

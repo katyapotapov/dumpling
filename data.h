@@ -84,5 +84,8 @@ void LoadData(Data* data, const char* filename);
 
 // TODO Load from an encrypted file given password
 
+const Image* FindImage(const Data* data, const char* name);
+const Text* FindText(const Data* data, const char* name);
+
 void DestroyData(Data* data);
 
