@@ -15,6 +15,26 @@
 #include "graphic.h"
 #include "tigr.h"
 
+static int FindPageIndex(const Data* data, const char* name) {
+    for (int i = 0; i < data->pageCount; ++i) {
+        if (strcmp(data->pages[i].name, name) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static const Entity* FindEntity(const Page* page, const char* name) {
+    for (int i = 0; i < page->entCount; ++i) {
+        if (strcmp(page->ents[i].name, name) == 0) {
+            return &page->ents[i];
+        }
+    }
+
+    return NULL;
+}
+
 static const BoxLayout* FindBox(const Page* page, const char* name) {
     for (int i = 0; i < page->boxCount; ++i) {
         if (strcmp(page->boxes[i].name, name) == 0) {
@@ -156,6 +176,42 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
+static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
+                            int* newPageIndex) {
+    if (page->hasQuestion) {
+        if (tigrKeyDown(screen, page->question.correctAnswerKey)) {
+            *newPageIndex =
+                FindPageIndex(data, page->question.correctAnswerPageName);
+        } else {
+            for (int ch = 'A'; ch <= 'Z'; ++ch) {
+                if (tigrKeyDown(screen, ch)) {
+                    *newPageIndex = FindPageIndex(
+                        data, page->question.incorrectAnswerPageName);
+                    break;
+                }
+            }
+        }
+    } else if (tigrKeyDown(screen, TK_SPACE) || tigrKeyDown(screen, TK_RIGHT)) {
+        if (page->hasCustomNextPage) {
+            *newPageIndex = FindPageIndex(data, page->customNextPageName);
+        } else {
+            *newPageIndex += 1;
+
+            if (*newPageIndex >= data->pageCount) {
+                *newPageIndex = 0;
+            }
+        }
+    }
+
+    if (tigrKeyDown(screen, TK_LEFT)) {
+        *newPageIndex -= 1;
+
+        if (*newPageIndex < 0) {
+            *newPageIndex = data->pageCount - 1;
+        }
+    }
+}
+
 static void PlayPageSounds(cs_context_t* ctx, const Data* data,
                            const Page* page) {
     if (cs_get_playing(ctx)) {
@@ -202,40 +258,38 @@ int main(int argc, char** argv) {
         tigrError(screen, "Failed to init audio: %s", cs_error_reason);
     }
 
-    (void)tigrTime();
-
     if (data.pageCount == 0) {
         tigrError(screen, "No pages in the journal.");
     }
 
+    (void)tigrTime();
+
     int prevPageIndex = -1;
 
     while (!tigrClosed(screen)) {
+        const Page* page = &data.pages[pageIndex];
+
         tigrClear(screen, tigrRGB(0x80, 0x90, 0xa0));
 
         pageTime += tigrTime();
 
-        DrawPage(screen, &data, &data.pages[pageIndex], pageTime);
+        DrawPage(screen, &data, page, pageTime);
 
-        if (tigrKeyDown(screen, TK_SPACE) || tigrKeyDown(screen, TK_RIGHT)) {
-            pageIndex += 1;
-            pageTime = 0;
+        int newPageIndex = pageIndex;
 
-            if (pageIndex >= data.pageCount) {
-                pageIndex = 0;
-            }
+        HandlePageInput(screen, &data, page, &newPageIndex);
+
+        if (newPageIndex < 0) {
+            tigrError(screen,
+                      "Invalid target page from page %s (check your question "
+                      "or npage)",
+                      page->name);
         }
 
-        if (tigrKeyDown(screen, TK_LEFT)) {
-            pageIndex -= 1;
-            pageTime = 0;
-
-            if (pageIndex < 0) {
-                pageIndex = data.pageCount - 1;
-            }
-        }
+        pageIndex = newPageIndex;
 
         if (pageIndex != prevPageIndex) {
+            pageTime = 0;
             PlayPageSounds(ctx, &data, &data.pages[pageIndex]);
         }
 

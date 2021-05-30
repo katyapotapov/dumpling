@@ -20,6 +20,8 @@
 
 #define MAX_SOUND_PLAYERS 4
 
+#define MAX_QUESTION_OPTIONS 8
+
 #define MAX_PAGES 1024
 
 #define ENT_POS_CENTER -1000
@@ -80,6 +82,15 @@ typedef struct SoundPlayer {
     char soundName[MAX_NAME_LEN];
 } SoundPlayer;
 
+typedef struct Question {
+    char name[MAX_NAME_LEN];
+
+    int correctAnswerKey;
+
+    char correctAnswerPageName[MAX_NAME_LEN];
+    char incorrectAnswerPageName[MAX_NAME_LEN];
+} Question;
+
 typedef struct Page {
     char name[MAX_NAME_LEN];
 
@@ -91,6 +102,12 @@ typedef struct Page {
 
     int soundPlayerCount;
     SoundPlayer soundPlayers[MAX_SOUND_PLAYERS];
+
+    bool hasQuestion;
+    Question question;
+
+    bool hasCustomNextPage;
+    char customNextPageName[MAX_NAME_LEN];
 } Page;
 
 typedef struct Data {

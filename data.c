@@ -171,6 +171,25 @@ static SoundPlayer ParseSoundPlayer(FILE* f) {
     return sp;
 }
 
+static Question ParseQuestion(FILE* f) {
+    Question q = {0};
+
+    char ch;
+
+    fscanf(f, "%s %c %s %s", q.name, &ch, q.correctAnswerPageName,
+           q.incorrectAnswerPageName);
+
+    if (ch < 'A' || ch > 'Z') {
+        tigrError(NULL,
+                  "Question %s correct answer key must be a letter (A to Z)",
+                  q.name);
+    }
+
+    q.correctAnswerKey = ch;
+
+    return q;
+}
+
 void InitData(Data* data) { memset(data, 0, sizeof(*data)); }
 
 void LoadData(Data* data, const char* filename) {
@@ -203,6 +222,32 @@ void LoadData(Data* data, const char* filename) {
         } else if (strcmp(cmd, "splayer") == 0) {
             curPage->soundPlayers[curPage->soundPlayerCount++] =
                 ParseSoundPlayer(f);
+        } else if (strcmp(cmd, "question") == 0) {
+            if (curPage->hasQuestion) {
+                tigrError(NULL,
+                          "Attempted to add multiple questions to page %s",
+                          curPage->name);
+            }
+
+            if (curPage->hasCustomNextPage) {
+                tigrError(NULL,
+                          "Cannot add question to page %s because it has a "
+                          "custom next page",
+                          curPage->name);
+            }
+
+            curPage->hasQuestion = true;
+            curPage->question = ParseQuestion(f);
+        } else if (strcmp(cmd, "npage") == 0) {
+            if (curPage->hasQuestion) {
+                tigrError(
+                    NULL,
+                    "Cannot set next page on page %s because it has a question",
+                    curPage->name);
+            }
+
+            curPage->hasCustomNextPage = true;
+            fscanf(f, "%s", curPage->customNextPageName);
         }
     }
 }

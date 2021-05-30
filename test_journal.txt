@@ -2,6 +2,26 @@
 text hello 30
 Hello, world!
 
+text correct 30
+Right answer
+
+text incorrect 30
+Wrong answer
+
 page hello
 
 ent t1 c c hello
+question q1 A correct incorrect
+
+page correct
+
+ent t1 c c correct
+
+npage hello
+
+page incorrect
+
+ent t1 c c incorrect
+
+npage hello
+
