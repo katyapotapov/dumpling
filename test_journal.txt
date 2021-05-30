@@ -1,6 +1,10 @@
 
-text hello 30
-Hello, world!
+mtext hello 50
+Hey, select the right answer, or don't it's up to you
+
+A. Right answer
+B. Wrong answer
+endtext
 
 text correct 30
 Right answer
