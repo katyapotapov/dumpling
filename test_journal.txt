@@ -1,5 +1,6 @@
+image heart 4 data/heart.png
 
-mtext hello 50
+mtext hello 70
 Hey, select the right answer, or don't it's up to you
 
 A. Right answer
@@ -16,6 +17,10 @@ page hello
 
 ent t1 c c hello
 question q1 A correct incorrect
+
+ent h c 100 heart
+
+click c1 h correct
 
 page correct
 

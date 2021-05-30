@@ -190,6 +190,14 @@ static Question ParseQuestion(FILE* f) {
     return q;
 }
 
+static Clickable ParseClickable(FILE* f) {
+    Clickable c = {0};
+
+    fscanf(f, "%s %s %s", c.name, c.objectName, c.clickPageName);
+
+    return c;
+}
+
 void InitData(Data* data) { memset(data, 0, sizeof(*data)); }
 
 void LoadData(Data* data, const char* filename) {
@@ -246,8 +254,17 @@ void LoadData(Data* data, const char* filename) {
                     curPage->name);
             }
 
+            if (curPage->clickCount > 0) {
+                tigrError(NULL,
+                          "Cannot set next page on page %s because it has a "
+                          "clickable",
+                          curPage->name);
+            }
+
             curPage->hasCustomNextPage = true;
             fscanf(f, "%s", curPage->customNextPageName);
+        } else if (strcmp(cmd, "click") == 0) {
+            curPage->clicks[curPage->clickCount++] = ParseClickable(f);
         }
     }
 

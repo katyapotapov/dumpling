@@ -47,7 +47,7 @@ static const BoxLayout* FindBox(const Page* page, const char* name) {
 }
 
 static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page,
-                       float pageTime, int* w, int* h) {
+                       int* w, int* h) {
     int ww = 0;
     int hh = 0;
 
@@ -68,7 +68,7 @@ static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page,
         int gh = 0;
 
         if (childBox) {
-            MeasureBox(childBox, data, page, pageTime, &gw, &gh);
+            MeasureBox(childBox, data, page, &gw, &gh);
         } else {
             MeasureGraphic(data, name, &gw, &gh);
         }
@@ -98,7 +98,7 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
     int w = 0;
     int h = 0;
 
-    MeasureBox(box, data, page, pageTime, &w, &h);
+    MeasureBox(box, data, page, &w, &h);
 
     int x = 0;
     int y = 0;
@@ -131,7 +131,7 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
         int gh = 0;
 
         if (childBox) {
-            MeasureBox(childBox, data, page, pageTime, &gw, &gh);
+            MeasureBox(childBox, data, page, &gw, &gh);
         } else {
             MeasureGraphic(data, name, &gw, &gh);
         }
@@ -164,6 +164,35 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
 static void DrawEntity(Tigr* screen, const Data* data, float pageTime,
                        const Entity* ent) {
     DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y);
+}
+
+static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
+                            const char* name, int* x, int* y, int* w, int* h) {
+    const Entity* ent = FindEntity(page, name);
+
+    if (ent) {
+        MeasureGraphic(data, ent->resName, w, h);
+
+        *x = HandleSpecialPos(ent->x, screen->w, *w);
+        *y = HandleSpecialPos(ent->y, screen->h, *h);
+
+        return;
+    }
+
+    const BoxLayout* box = FindBox(page, name);
+
+    if (box) {
+        // TODO Make this work with nested boxes
+        MeasureBox(box, data, page, w, h);
+
+        // TODO Throw an error if the box position is hidden (most likely a
+        // nested box)
+
+        *x = HandleSpecialPos(box->x, screen->w, *w);
+        *y = HandleSpecialPos(box->y, screen->h, *h);
+
+        return;
+    }
 }
 
 static void DrawPage(Tigr* screen, const Data* data, const Page* page,
@@ -209,6 +238,30 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
 
         if (*newPageIndex < 0) {
             *newPageIndex = data->pageCount - 1;
+        }
+    }
+
+    int mx = 0;
+    int my = 0;
+    int mb = 0;
+
+    tigrMouse(screen, &mx, &my, &mb);
+
+    if (mb) {
+        for (int i = 0; i < page->clickCount; ++i) {
+            const Clickable* click = &page->clicks[i];
+
+            int x = 0;
+            int y = 0;
+            int w = 0;
+            int h = 0;
+
+            GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w,
+                            &h);
+
+            if (mx >= x && my >= y && mx <= x + w && my <= y + h) {
+                *newPageIndex = FindPageIndex(data, click->clickPageName);
+            }
         }
     }
 }
@@ -301,8 +354,8 @@ int main(int argc, char** argv) {
 
         if (newPageIndex < 0) {
             tigrError(screen,
-                      "Invalid target page from page %s (check your question "
-                      "or npage)",
+                      "Invalid target page from page %s (check your question, "
+                      "npage, or click)",
                       page->name);
         }
 

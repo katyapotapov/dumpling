@@ -20,7 +20,7 @@
 
 #define MAX_SOUND_PLAYERS 4
 
-#define MAX_QUESTION_OPTIONS 8
+#define MAX_CLICKABLES 8
 
 #define MAX_PAGES 1024
 
@@ -91,6 +91,14 @@ typedef struct Question {
     char incorrectAnswerPageName[MAX_NAME_LEN];
 } Question;
 
+typedef struct Clickable {
+    char name[MAX_NAME_LEN];
+
+    char objectName[MAX_NAME_LEN];
+
+    char clickPageName[MAX_NAME_LEN];
+} Clickable;
+
 typedef struct Page {
     char name[MAX_NAME_LEN];
 
@@ -102,6 +110,9 @@ typedef struct Page {
 
     int soundPlayerCount;
     SoundPlayer soundPlayers[MAX_SOUND_PLAYERS];
+
+    int clickCount;
+    Clickable clicks[MAX_CLICKABLES];
 
     bool hasQuestion;
     Question question;
