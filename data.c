@@ -250,6 +250,8 @@ void LoadData(Data* data, const char* filename) {
             fscanf(f, "%s", curPage->customNextPageName);
         }
     }
+
+    fclose(f);
 }
 
 const Image* FindImage(const Data* data, const char* name) {

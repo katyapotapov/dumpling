@@ -14,6 +14,7 @@
 #include "data.h"
 #include "graphic.h"
 #include "tigr.h"
+#include "util.h"
 
 static int FindPageIndex(const Data* data, const char* name) {
     for (int i = 0; i < data->pageCount; ++i) {
@@ -237,9 +238,6 @@ int main(int argc, char** argv) {
 
     static Data data;
 
-    InitData(&data);
-    LoadData(&data, argv[1]);
-
     int pageIndex = 0;
     float pageTime = 0;
 
@@ -258,15 +256,37 @@ int main(int argc, char** argv) {
         tigrError(screen, "Failed to init audio: %s", cs_error_reason);
     }
 
-    if (data.pageCount == 0) {
-        tigrError(screen, "No pages in the journal.");
-    }
-
     (void)tigrTime();
 
     int prevPageIndex = -1;
+    long long lastDataWriteTime = 0;
 
     while (!tigrClosed(screen)) {
+        long long dataWriteTime = 0;
+
+        // Hot-reload the data file
+        if (GetLastWriteTime(argv[1], &dataWriteTime) &&
+            dataWriteTime != lastDataWriteTime) {
+            if (lastDataWriteTime != 0) {
+                DestroyData(&data);
+            }
+
+            InitData(&data);
+            LoadData(&data, argv[1]);
+
+            lastDataWriteTime = dataWriteTime;
+
+            if (data.pageCount == 0) {
+                tigrError(screen, "No pages in the journal.");
+            }
+
+            pageTime = 0;
+
+            if (pageIndex >= data.pageCount) {
+                pageIndex = 0;
+            }
+        }
+
         const Page* page = &data.pages[pageIndex];
 
         tigrClear(screen, tigrRGB(0x80, 0x90, 0xa0));

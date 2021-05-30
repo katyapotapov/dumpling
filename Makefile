@@ -1,5 +1,5 @@
 
-DEPS = main.c data.c tigr.c graphic.c cute_sound.h tigr.h
+DEPS = main.c data.c tigr.c graphic.c util.c cute_sound.h tigr.h
 CSRCS = $(filter %.c,$(DEPS))
 
 dumpling: $(DEPS)
