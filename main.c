@@ -247,21 +247,22 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
 
     tigrMouse(screen, &mx, &my, &mb);
 
-    if (mb) {
-        for (int i = 0; i < page->clickCount; ++i) {
-            const Clickable* click = &page->clicks[i];
+    for (int i = 0; i < page->clickCount; ++i) {
+        const Clickable* click = &page->clicks[i];
 
-            int x = 0;
-            int y = 0;
-            int w = 0;
-            int h = 0;
+        int x = 0;
+        int y = 0;
+        int w = 0;
+        int h = 0;
 
-            GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w,
-                            &h);
+        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h);
 
-            if (mx >= x && my >= y && mx <= x + w && my <= y + h) {
+        if (mx >= x && my >= y && mx <= x + w && my <= y + h) {
+            if (mb) {
                 *newPageIndex = FindPageIndex(data, click->clickPageName);
             }
+
+            tigrRect(screen, x, y, w, h, tigrRGBA(255, 255, 255, 100));
         }
     }
 }
