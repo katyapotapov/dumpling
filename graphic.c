@@ -47,6 +47,10 @@ void MeasureGraphic(const Data* data, const char* name, int* w, int* h) {
     if (image) {
         *w = image->image->w;
         *h = image->image->h;
+
+        if (image->frameCount) {
+            *w /= image->frameCount;
+        }
         return;
     }
 
@@ -64,11 +68,20 @@ void DrawGraphic(Tigr* screen, const Data* data, float pageTime,
     const Image* image = FindImage(data, name);
 
     if (image) {
-        x = HandleSpecialPos(x, screen->w, image->image->w);
-        y = HandleSpecialPos(y, screen->h, image->image->h);
+        int sx = 0;
+        int sy = 0;
+        int sw = image->image->w;
+        int sh = image->image->h;
 
-        tigrBlitAlpha(screen, image->image, x, y, 0, 0, image->image->w,
-                      image->image->h, 1);
+        if (image->frameCount) {
+            sw /= image->frameCount;
+            sx = ((int)(pageTime / image->frameTime) % image->frameCount) * sw;
+        }
+
+        x = HandleSpecialPos(x, screen->w, sw);
+        y = HandleSpecialPos(y, screen->h, sh);
+
+        tigrBlitAlpha(screen, image->image, x, y, 0, 0, sw, sh, 1);
 
         return;
     }

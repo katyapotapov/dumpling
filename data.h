@@ -35,6 +35,9 @@ typedef struct Image {
     char name[MAX_NAME_LEN];
 
     Tigr* image;
+
+    int frameCount;
+    float frameTime;
 } Image;
 
 typedef struct Text {

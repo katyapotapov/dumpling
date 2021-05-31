@@ -7,13 +7,17 @@
 #include "cute_sound.h"
 #include "tigr.h"
 
-static Image ParseImage(FILE* f) {
+static Image ParseImage(FILE* f, bool sprite) {
     Image image = {0};
 
     char filename[256];
     int scale = 1;
 
     fscanf(f, "%s %d %s", image.name, &scale, filename);
+
+    if (sprite) {
+        fscanf(f, "%d %f", &image.frameCount, &image.frameTime);
+    }
 
     image.image = tigrLoadImage(filename);
 
@@ -211,7 +215,9 @@ void LoadData(Data* data, const char* filename) {
         fscanf(f, "%s", cmd);
 
         if (strcmp(cmd, "image") == 0) {
-            data->images[data->imageCount++] = ParseImage(f);
+            data->images[data->imageCount++] = ParseImage(f, false);
+        } else if (strcmp(cmd, "simage") == 0) {
+            data->images[data->imageCount++] = ParseImage(f, true);
         } else if (strcmp(cmd, "text") == 0) {
             data->texts[data->textCount++] = ParseText(f, false);
         } else if (strcmp(cmd, "mtext") == 0) {
