@@ -1,4 +1,5 @@
 image heart 4 data/heart.png
+simage uw 4 data/uw.png 2 1
 
 mtext hello 70
 Hey, select the right answer, or don't it's up to you
@@ -18,7 +19,7 @@ page hello
 ent t1 c c hello
 question q1 A correct incorrect
 
-ent h c 100 heart
+ent h c 50 uw
 
 click c1 h correct
 

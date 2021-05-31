@@ -81,7 +81,7 @@ void DrawGraphic(Tigr* screen, const Data* data, float pageTime,
         x = HandleSpecialPos(x, screen->w, sw);
         y = HandleSpecialPos(y, screen->h, sh);
 
-        tigrBlitAlpha(screen, image->image, x, y, 0, 0, sw, sh, 1);
+        tigrBlitAlpha(screen, image->image, x, y, sx, sy, sw, sh, 1);
 
         return;
     }
