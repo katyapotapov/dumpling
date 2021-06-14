@@ -12,22 +12,13 @@ Right answer
 text incorrect 30
 Wrong answer
 
-page hello
-
-ent t1 c c hello
-question q1 A correct incorrect
-
-click c1 h correct
-
-page correct
+page test
 
 ent t1 c c correct
 
-npage hello
+bpage test2 test
 
-page incorrect
+npage test
 
-ent t1 c c incorrect
 
-npage hello
 

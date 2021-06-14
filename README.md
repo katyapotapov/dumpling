@@ -1,5 +1,7 @@
 # Dumpling
 
+Interactive adventure slideshow program.
+
 ## TODO
 - Add command to copy a previous page into current page
 - Entities with the same name should override previous entities defined on the same page

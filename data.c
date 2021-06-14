@@ -105,10 +105,28 @@ static void ParseSound(Sound* sound, FILE* f) {
     sound->sound = cs_make_def(&sound->loaded);
 }
 
-static Page ParsePage(FILE* f) {
+static Page ParsePage(FILE* f, const Data* baseData) {
     Page page = {0};
 
-    fscanf(f, "%s", page.name);
+    char pageName[MAX_NAME_LEN];
+
+    fscanf(f, "%s", pageName);
+
+    if (baseData) {
+        char basePageName[MAX_NAME_LEN];
+
+        fscanf(f, "%s", basePageName);
+
+        for (int i = 0; i < baseData->pageCount; ++i) {
+            if (strcmp(baseData->pages[i].name, basePageName) == 0) {
+                memcpy(&page, &baseData->pages[i], sizeof(Page));
+
+                break;
+            }
+        }
+    }
+
+    strcpy(page.name, pageName);
 
     return page;
 }
@@ -226,7 +244,7 @@ void LoadData(Data* data, const char* filename) {
             ParseSound(&data->sounds[data->soundCount++], f);
         } else if (strcmp(cmd, "page") == 0) {
             curPage = &data->pages[data->pageCount];
-            data->pages[data->pageCount++] = ParsePage(f);
+            data->pages[data->pageCount++] = ParsePage(f, NULL);
         } else if (strcmp(cmd, "ent") == 0) {
             curPage->ents[curPage->entCount++] = ParseEntity(f);
         } else if (strcmp(cmd, "hbox") == 0) {
@@ -271,6 +289,9 @@ void LoadData(Data* data, const char* filename) {
             fscanf(f, "%s", curPage->customNextPageName);
         } else if (strcmp(cmd, "click") == 0) {
             curPage->clicks[curPage->clickCount++] = ParseClickable(f);
+        } else if (strcmp(cmd, "bpage") == 0) {
+            curPage = &data->pages[data->pageCount];
+            data->pages[data->pageCount++] = ParsePage(f, data);
         }
     }
 
