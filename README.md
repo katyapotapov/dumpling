@@ -3,6 +3,8 @@
 Interactive adventure slideshow program.
 
 ## TODO
+- Add error checking for data loading
+- Add documentation for data commands
 - Add keyboard mover which allows moving an entity based on keyboard input
 - Add collision handler to go to a page when an entity touches something
 
