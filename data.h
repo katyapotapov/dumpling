@@ -102,6 +102,14 @@ typedef struct Clickable {
     char clickPageName[MAX_NAME_LEN];
 } Clickable;
 
+typedef struct Mover {
+    char name[MAX_NAME_LEN];
+
+    char objectName[MAX_NAME_LEN];
+
+    float speed;
+} Mover;
+
 typedef struct Page {
     char name[MAX_NAME_LEN];
 
@@ -122,6 +130,9 @@ typedef struct Page {
 
     bool hasCustomNextPage;
     char customNextPageName[MAX_NAME_LEN];
+
+    bool hasMover;
+    Mover mover;
 } Page;
 
 typedef struct Data {

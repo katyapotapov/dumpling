@@ -150,7 +150,8 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
             DrawBox(screen, data, page, pageTime, childBox, x + xx + ox,
                     y + yy + oy);
         } else {
-            DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy);
+            DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy,
+                        0, 0);
         }
 
         if (!box->vert) {
@@ -162,8 +163,8 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
 }
 
 static void DrawEntity(Tigr* screen, const Data* data, float pageTime,
-                       const Entity* ent) {
-    DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y);
+                       const Entity* ent, int mx, int my) {
+    DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y, mx, my);
 }
 
 static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
@@ -196,9 +197,20 @@ static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
 }
 
 static void DrawPage(Tigr* screen, const Data* data, const Page* page,
-                     float pageTime) {
+                     float pageTime, int mx, int my) {
     for (int i = 0; i < page->entCount; ++i) {
-        DrawEntity(screen, data, pageTime, &page->ents[i]);
+        // Apply the mover offset if the name of the mover matches the entity
+        // name
+        int mmx = 0;
+        int mmy = 0;
+
+        if (page->hasMover &&
+            strcmp(page->ents[i].name, page->mover.objectName) == 0) {
+            mmx = mx;
+            mmy = my;
+        }
+
+        DrawEntity(screen, data, pageTime, &page->ents[i], mx, my);
     }
 
     for (int i = 0; i < page->boxCount; ++i) {
@@ -207,7 +219,7 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
 }
 
 static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
-                            int* newPageIndex) {
+                            int* newPageIndex, int* mx, int* my, float dt) {
     if (page->hasQuestion) {
         if (tigrKeyDown(screen, page->question.correctAnswerKey)) {
             *newPageIndex =
@@ -221,6 +233,24 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
                 }
             }
         }
+    } else if (page->hasMover) {
+        const int speed = (int)(page->mover.speed * dt);
+
+        if (tigrKeyHeld(screen, TK_LEFT)) {
+            *mx -= speed;
+        }
+
+        if (tigrKeyHeld(screen, TK_RIGHT)) {
+            *mx += speed;
+        }
+
+        if (tigrKeyHeld(screen, TK_UP)) {
+            *my -= speed;
+        }
+
+        if (tigrKeyHeld(screen, TK_DOWN)) {
+            *my += speed;
+        }
     } else if (tigrKeyDown(screen, TK_SPACE) || tigrKeyDown(screen, TK_RIGHT)) {
         if (page->hasCustomNextPage) {
             *newPageIndex = FindPageIndex(data, page->customNextPageName);
@@ -233,7 +263,7 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
         }
     }
 
-    if (tigrKeyDown(screen, TK_LEFT)) {
+    if (!page->hasMover && tigrKeyDown(screen, TK_LEFT)) {
         *newPageIndex -= 1;
 
         if (*newPageIndex < 0) {
@@ -241,11 +271,11 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
         }
     }
 
-    int mx = 0;
-    int my = 0;
+    int mouseX = 0;
+    int mouseY = 0;
     int mb = 0;
 
-    tigrMouse(screen, &mx, &my, &mb);
+    tigrMouse(screen, &mouseX, &mouseY, &mb);
 
     for (int i = 0; i < page->clickCount; ++i) {
         const Clickable* click = &page->clicks[i];
@@ -257,7 +287,7 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
 
         GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h);
 
-        if (mx >= x && my >= y && mx <= x + w && my <= y + h) {
+        if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) {
             if (mb) {
                 *newPageIndex = FindPageIndex(data, click->clickPageName);
             }
@@ -294,6 +324,8 @@ int main(int argc, char** argv) {
 
     int pageIndex = 0;
     float pageTime = 0;
+    int mx = 0;
+    int my = 0;
 
     Tigr* screen = tigrWindow(640, 480, "Dumpling", 0);
 
@@ -335,6 +367,8 @@ int main(int argc, char** argv) {
             }
 
             pageTime = 0;
+            mx = 0;
+            my = 0;
 
             if (pageIndex >= data.pageCount) {
                 pageIndex = 0;
@@ -345,13 +379,15 @@ int main(int argc, char** argv) {
 
         tigrClear(screen, tigrRGB(0x80, 0x90, 0xa0));
 
-        pageTime += tigrTime();
+        const float dt = tigrTime();
 
-        DrawPage(screen, &data, page, pageTime);
+        pageTime += dt;
+
+        DrawPage(screen, &data, page, pageTime, mx, my);
 
         int newPageIndex = pageIndex;
 
-        HandlePageInput(screen, &data, page, &newPageIndex);
+        HandlePageInput(screen, &data, page, &newPageIndex, &mx, &my, dt);
 
         if (newPageIndex < 0) {
             tigrError(screen,
@@ -364,6 +400,8 @@ int main(int argc, char** argv) {
 
         if (pageIndex != prevPageIndex) {
             pageTime = 0;
+            mx = 0;
+            my = 0;
             PlayPageSounds(ctx, &data, &data.pages[pageIndex]);
         }
 

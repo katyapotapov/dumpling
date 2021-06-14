@@ -64,7 +64,7 @@ void MeasureGraphic(const Data* data, const char* name, int* w, int* h) {
 }
 
 void DrawGraphic(Tigr* screen, const Data* data, float pageTime,
-                 const char* name, int x, int y) {
+                 const char* name, int x, int y, int mx, int my) {
     const Image* image = FindImage(data, name);
 
     if (image) {
@@ -78,8 +78,8 @@ void DrawGraphic(Tigr* screen, const Data* data, float pageTime,
             sx = ((int)(pageTime / image->frameTime) % image->frameCount) * sw;
         }
 
-        x = HandleSpecialPos(x, screen->w, sw);
-        y = HandleSpecialPos(y, screen->h, sh);
+        x = HandleSpecialPos(x, screen->w, sw) + mx;
+        y = HandleSpecialPos(y, screen->h, sh) + my;
 
         tigrBlitAlpha(screen, image->image, x, y, sx, sy, sw, sh, 1);
 
@@ -96,8 +96,8 @@ void DrawGraphic(Tigr* screen, const Data* data, float pageTime,
         int tw = tigrTextWidth(tfont, text->str);
         int th = tigrTextHeight(tfont, text->str);
 
-        x = HandleSpecialPos(x, screen->w, tw);
-        y = HandleSpecialPos(y, screen->h, th);
+        x = HandleSpecialPos(x, screen->w, tw) + mx;
+        y = HandleSpecialPos(y, screen->h, th) + my;
 
         tigrPrint(screen, tfont, x, y, tigrRGB(255, 255, 255), substr);
 

@@ -220,6 +220,14 @@ static Clickable ParseClickable(FILE* f) {
     return c;
 }
 
+static Mover ParseMover(FILE* f) {
+    Mover m = {0};
+
+    fscanf(f, "%s %s %g", m.name, m.objectName, &m.speed);
+
+    return m;
+}
+
 static void MergeIdenticalNames(Page* page) {
     // Preserve the last entity with a given name
 
@@ -252,10 +260,14 @@ void LoadData(Data* data, const char* filename) {
 
     Page* curPage = NULL;
 
-    while (!feof(f)) {
+    for (;;) {
         char cmd[64];
 
         fscanf(f, "%s", cmd);
+
+		if (feof(f)) {
+			break;
+		}
 
         if (strcmp(cmd, "image") == 0) {
             data->images[data->imageCount++] = ParseImage(f, false);
@@ -317,6 +329,9 @@ void LoadData(Data* data, const char* filename) {
         } else if (strcmp(cmd, "bpage") == 0) {
             curPage = &data->pages[data->pageCount];
             data->pages[data->pageCount++] = ParsePage(f, data);
+        } else if (strcmp(cmd, "mover") == 0) {
+            curPage->hasMover = true;
+            curPage->mover = ParseMover(f);
         }
     }
 

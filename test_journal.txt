@@ -5,3 +5,5 @@ Hello, world!
 page hello
 
 ent t1 c c hello
+
+mover m1 t1 200
