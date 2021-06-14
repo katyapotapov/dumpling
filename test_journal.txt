@@ -18,6 +18,8 @@ ent t1 c c correct
 
 bpage test2 test
 
+ent t1 l l correct
+
 npage test
 
 

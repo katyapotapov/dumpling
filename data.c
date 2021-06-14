@@ -220,6 +220,31 @@ static Clickable ParseClickable(FILE* f) {
     return c;
 }
 
+static void MergeIdenticalNames(Page* page) {
+    // Preserve the last entity with a given name
+
+    // TODO Write this without a macro
+#define MERGE_BACK(entCount, ents)                                         \
+    for (int i = 0; i < page->entCount; ++i) {                             \
+        for (int j = i + 1; j < page->entCount; ++j) {                     \
+            if (strcmp(page->ents[i].name, page->ents[j].name) == 0) {     \
+                page->ents[i] = page->ents[j];                             \
+                memmove(&page->ents[j], &page->ents[j + 1],                \
+                        sizeof(page->ents[0]) * (page->entCount - j - 1)); \
+                page->entCount -= 1;                                       \
+                break;                                                     \
+            }                                                              \
+        }                                                                  \
+    }
+
+    MERGE_BACK(entCount, ents);
+    MERGE_BACK(boxCount, boxes);
+    MERGE_BACK(soundPlayerCount, soundPlayers);
+    MERGE_BACK(clickCount, clicks);
+
+#undef MERGE_BACK
+}
+
 void InitData(Data* data) { memset(data, 0, sizeof(*data)); }
 
 void LoadData(Data* data, const char* filename) {
@@ -293,6 +318,10 @@ void LoadData(Data* data, const char* filename) {
             curPage = &data->pages[data->pageCount];
             data->pages[data->pageCount++] = ParsePage(f, data);
         }
+    }
+
+    for (int i = 0; i < data->pageCount; ++i) {
+        MergeIdenticalNames(&data->pages[i]);
     }
 
     fclose(f);
