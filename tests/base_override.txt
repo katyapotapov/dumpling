@@ -1,0 +1,26 @@
+
+mtext hello 70
+Hey, select the right answer, or don't it's up to you
+
+A. Right answer
+B. Wrong answer
+endtext
+
+text correct 30
+Right answer
+
+text incorrect 30
+Wrong answer
+
+page test
+
+ent t1 c c correct
+
+bpage test2 test
+
+ent t1 l l correct
+
+npage test
+
+
+
