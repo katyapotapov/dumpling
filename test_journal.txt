@@ -1,15 +1,18 @@
 
+simage face 4 tests/happy_sad.png 2 1
+
 text hello
 Hello, world!
 
 page hello
 
-ent t1 c c hello
+ent t1 c c face
+ent t2 100 100 hello
 
 mover m1 t1 200
 
-click c1 t1 hello2
+touch c1 t1 t2 hello2
 
 bpage hello2 hello
 
-click c1 t1 hello
+touch c1 t1 t2 hello

@@ -3,11 +3,11 @@
 Interactive adventure slideshow program.
 
 ## TODO
+- Add collision handler to go to a page when an entity touches something
 - Add error checking for data loading
 - Add documentation for data commands
-- Add `amover` or Animated Movers which can have animated position based on time
+- Add `automover` which can have animated position based on time
 - Allow question to have different pages for different input
-- Add collision handler to go to a page when an entity touches something
 
 ## DONE
 - Add command to copy a previous page into current page

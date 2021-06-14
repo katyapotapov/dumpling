@@ -219,7 +219,7 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
             mmy = my;
         }
 
-        DrawEntity(screen, data, pageTime, &page->ents[i], mx, my);
+        DrawEntity(screen, data, pageTime, &page->ents[i], mmx, mmy);
     }
 
     for (int i = 0; i < page->boxCount; ++i) {
@@ -304,6 +304,31 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
 
             tigrRect(screen, x, y, w, h, tigrRGBA(255, 255, 255, 100));
         }
+    }
+
+    for (int i = 0; i < page->touchCount; ++i) {
+        const Touchable* touch = &page->touches[i];
+
+        int ax = 0;
+        int ay = 0;
+        int aw = 0;
+        int ah = 0;
+
+        int bx = 0;
+        int by = 0;
+        int bw = 0;
+        int bh = 0;
+
+        GetObjectBounds(screen, data, page, touch->toucherObjectName, &ax, &ay,
+                        &aw, &ah, *mx, *my);
+        GetObjectBounds(screen, data, page, touch->touchableObjectName, &bx,
+                        &by, &bw, &bh, *mx, *my);
+
+        if (ax + aw < bx || ay + ah < by || bx + bw < ax || by + bh < ay) {
+            continue;
+        }
+
+        *newPageIndex = FindPageIndex(data, touch->touchPageName);
     }
 }
 

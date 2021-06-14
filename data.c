@@ -220,6 +220,15 @@ static Clickable ParseClickable(FILE* f) {
     return c;
 }
 
+static Touchable ParseTouchable(FILE* f) {
+    Touchable t = {0};
+
+    fscanf(f, "%s %s %s %s", t.name, t.toucherObjectName, t.touchableObjectName,
+           t.touchPageName);
+
+    return t;
+}
+
 static Mover ParseMover(FILE* f) {
     Mover m = {0};
 
@@ -332,6 +341,8 @@ void LoadData(Data* data, const char* filename) {
         } else if (strcmp(cmd, "mover") == 0) {
             curPage->hasMover = true;
             curPage->mover = ParseMover(f);
+        } else if (strcmp(cmd, "touch") == 0) {
+            curPage->touches[curPage->touchCount++] = ParseTouchable(f);
         }
     }
 

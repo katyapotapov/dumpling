@@ -22,6 +22,8 @@
 
 #define MAX_CLICKABLES 8
 
+#define MAX_TOUCHABLES 32
+
 #define MAX_PAGES 1024
 
 #define ENT_POS_CENTER -1000
@@ -102,6 +104,15 @@ typedef struct Clickable {
     char clickPageName[MAX_NAME_LEN];
 } Clickable;
 
+typedef struct Touchable {
+    char name[MAX_NAME_LEN];
+
+    char toucherObjectName[MAX_NAME_LEN];
+    char touchableObjectName[MAX_NAME_LEN];
+
+    char touchPageName[MAX_NAME_LEN];
+} Touchable;
+
 typedef struct Mover {
     char name[MAX_NAME_LEN];
 
@@ -124,6 +135,9 @@ typedef struct Page {
 
     int clickCount;
     Clickable clicks[MAX_CLICKABLES];
+
+    int touchCount;
+    Touchable touches[MAX_TOUCHABLES];
 
     bool hasQuestion;
     Question question;
