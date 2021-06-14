@@ -168,14 +168,23 @@ static void DrawEntity(Tigr* screen, const Data* data, float pageTime,
 }
 
 static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
-                            const char* name, int* x, int* y, int* w, int* h) {
+                            const char* name, int* x, int* y, int* w, int* h,
+                            int mx, int my) {
     const Entity* ent = FindEntity(page, name);
 
     if (ent) {
         MeasureGraphic(data, ent->resName, w, h);
 
-        *x = HandleSpecialPos(ent->x, screen->w, *w);
-        *y = HandleSpecialPos(ent->y, screen->h, *h);
+        int mmx = 0;
+        int mmy = 0;
+
+        if (page->hasMover && strcmp(ent->name, page->mover.objectName) == 0) {
+            mmx = mx;
+            mmy = my;
+        }
+
+        *x = HandleSpecialPos(ent->x, screen->w, *w) + mmx;
+        *y = HandleSpecialPos(ent->y, screen->h, *h) + mmy;
 
         return;
     }
@@ -285,7 +294,8 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
         int w = 0;
         int h = 0;
 
-        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h);
+        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h,
+                        *mx, *my);
 
         if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) {
             if (mb) {

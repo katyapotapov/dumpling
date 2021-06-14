@@ -265,9 +265,9 @@ void LoadData(Data* data, const char* filename) {
 
         fscanf(f, "%s", cmd);
 
-		if (feof(f)) {
-			break;
-		}
+        if (feof(f)) {
+            break;
+        }
 
         if (strcmp(cmd, "image") == 0) {
             data->images[data->imageCount++] = ParseImage(f, false);
