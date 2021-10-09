@@ -2,3 +2,5 @@ data/
 bin/
 dumpling
 *.swp
+build/
+CMakeLists.txt.user
