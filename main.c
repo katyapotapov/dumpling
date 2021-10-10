@@ -46,8 +46,7 @@ static const BoxLayout* FindBox(const Page* page, const char* name) {
     return NULL;
 }
 
-static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page,
-                       int* w, int* h) {
+static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page, int* w, int* h) {
     int ww = 0;
     int hh = 0;
 
@@ -92,9 +91,8 @@ static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page,
     *h = hh;
 }
 
-static void DrawBox(Tigr* screen, const Data* data, const Page* page,
-                    float pageTime, const BoxLayout* box, int parentX,
-                    int parentY) {
+static void DrawBox(Tigr* screen, const Data* data, const Page* page, float pageTime,
+                    const BoxLayout* box, int parentX, int parentY) {
     int w = 0;
     int h = 0;
 
@@ -147,11 +145,9 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
         }
 
         if (childBox) {
-            DrawBox(screen, data, page, pageTime, childBox, x + xx + ox,
-                    y + yy + oy);
+            DrawBox(screen, data, page, pageTime, childBox, x + xx + ox, y + yy + oy);
         } else {
-            DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy,
-                        0, 0);
+            DrawGraphic(screen, data, pageTime, name, x + xx + ox, y + yy + oy, 0, 0);
         }
 
         if (!box->vert) {
@@ -162,14 +158,13 @@ static void DrawBox(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
-static void DrawEntity(Tigr* screen, const Data* data, float pageTime,
-                       const Entity* ent, int mx, int my) {
+static void DrawEntity(Tigr* screen, const Data* data, float pageTime, const Entity* ent, int mx,
+                       int my) {
     DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y, mx, my);
 }
 
-static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
-                            const char* name, int* x, int* y, int* w, int* h,
-                            int mx, int my) {
+static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page, const char* name,
+                            int* x, int* y, int* w, int* h, int mx, int my) {
     const Entity* ent = FindEntity(page, name);
 
     if (ent) {
@@ -205,16 +200,15 @@ static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
-static void DrawPage(Tigr* screen, const Data* data, const Page* page,
-                     float pageTime, int mx, int my) {
+static void DrawPage(Tigr* screen, const Data* data, const Page* page, float pageTime, int mx,
+                     int my) {
     for (int i = 0; i < page->entCount; ++i) {
         // Apply the mover offset if the name of the mover matches the entity
         // name
         int mmx = 0;
         int mmy = 0;
 
-        if (page->hasMover &&
-            strcmp(page->ents[i].name, page->mover.objectName) == 0) {
+        if (page->hasMover && strcmp(page->ents[i].name, page->mover.objectName) == 0) {
             mmx = mx;
             mmy = my;
         }
@@ -227,17 +221,15 @@ static void DrawPage(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
-static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
-                            int* newPageIndex, int* mx, int* my, float dt) {
+static void HandlePageInput(Tigr* screen, const Data* data, const Page* page, int* newPageIndex,
+                            int* mx, int* my, float dt) {
     if (page->hasQuestion) {
         if (tigrKeyDown(screen, page->question.correctAnswerKey)) {
-            *newPageIndex =
-                FindPageIndex(data, page->question.correctAnswerPageName);
+            *newPageIndex = FindPageIndex(data, page->question.correctAnswerPageName);
         } else {
             for (int ch = 'A'; ch <= 'Z'; ++ch) {
                 if (tigrKeyDown(screen, ch)) {
-                    *newPageIndex = FindPageIndex(
-                        data, page->question.incorrectAnswerPageName);
+                    *newPageIndex = FindPageIndex(data, page->question.incorrectAnswerPageName);
                     break;
                 }
             }
@@ -294,8 +286,7 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
         int w = 0;
         int h = 0;
 
-        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h,
-                        *mx, *my);
+        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h, *mx, *my);
 
         if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) {
             if (mb) {
@@ -319,10 +310,9 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
         int bw = 0;
         int bh = 0;
 
-        GetObjectBounds(screen, data, page, touch->toucherObjectName, &ax, &ay,
-                        &aw, &ah, *mx, *my);
-        GetObjectBounds(screen, data, page, touch->touchableObjectName, &bx,
-                        &by, &bw, &bh, *mx, *my);
+        GetObjectBounds(screen, data, page, touch->toucherObjectName, &ax, &ay, &aw, &ah, *mx, *my);
+        GetObjectBounds(screen, data, page, touch->touchableObjectName, &bx, &by, &bw, &bh, *mx,
+                        *my);
 
         if (ax + aw < bx || ay + ah < by || bx + bw < ax || by + bh < ay) {
             continue;
@@ -332,8 +322,7 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page,
     }
 }
 
-static void PlayPageSounds(cs_context_t* ctx, const Data* data,
-                           const Page* page) {
+static void PlayPageSounds(cs_context_t* ctx, const Data* data, const Page* page) {
     if (cs_get_playing(ctx)) {
         cs_stop_all_sounds(ctx);
     }
@@ -370,8 +359,7 @@ int main(int argc, char** argv) {
     }
 #endif
 
-    cs_context_t* ctx =
-        cs_make_context(screen->handle, 44100, 0, MAX_SOUND_PLAYERS, NULL);
+    cs_context_t* ctx = cs_make_context(screen->handle, 44100, 0, MAX_SOUND_PLAYERS, NULL);
 
     if (!ctx) {
         tigrError(screen, "Failed to init audio: %s", cs_error_reason);
@@ -386,8 +374,7 @@ int main(int argc, char** argv) {
         long long dataWriteTime = 0;
 
         // Hot-reload the data file
-        if (GetLastWriteTime(argv[1], &dataWriteTime) &&
-            dataWriteTime != lastDataWriteTime) {
+        if (GetLastWriteTime(argv[1], &dataWriteTime) && dataWriteTime != lastDataWriteTime) {
             if (lastDataWriteTime != 0) {
                 DestroyData(&data);
             }

@@ -39,8 +39,7 @@ static Image ParseImage(FILE* f, bool sprite) {
         for (int y = 0; y < sh; ++y) {
             for (int x = 0; x < sw; ++x) {
                 newImg->pix[y * sw + x] =
-                    image.image
-                        ->pix[(y / scale) * image.image->w + (x / scale)];
+                    image.image->pix[(y / scale) * image.image->w + (x / scale)];
             }
         }
 
@@ -198,13 +197,10 @@ static Question ParseQuestion(FILE* f) {
 
     char ch;
 
-    fscanf(f, "%s %c %s %s", q.name, &ch, q.correctAnswerPageName,
-           q.incorrectAnswerPageName);
+    fscanf(f, "%s %c %s %s", q.name, &ch, q.correctAnswerPageName, q.incorrectAnswerPageName);
 
     if (ch < 'A' || ch > 'Z') {
-        tigrError(NULL,
-                  "Question %s correct answer key must be a letter (A to Z)",
-                  q.name);
+        tigrError(NULL, "Question %s correct answer key must be a letter (A to Z)", q.name);
     }
 
     q.correctAnswerKey = ch;
@@ -223,8 +219,7 @@ static Clickable ParseClickable(FILE* f) {
 static Touchable ParseTouchable(FILE* f) {
     Touchable t = {0};
 
-    fscanf(f, "%s %s %s %s", t.name, t.toucherObjectName, t.touchableObjectName,
-           t.touchPageName);
+    fscanf(f, "%s %s %s %s", t.name, t.toucherObjectName, t.touchableObjectName, t.touchPageName);
 
     return t;
 }
@@ -298,13 +293,10 @@ void LoadData(Data* data, const char* filename) {
         } else if (strcmp(cmd, "vbox") == 0) {
             curPage->boxes[curPage->boxCount++] = ParseBox(f, true);
         } else if (strcmp(cmd, "splayer") == 0) {
-            curPage->soundPlayers[curPage->soundPlayerCount++] =
-                ParseSoundPlayer(f);
+            curPage->soundPlayers[curPage->soundPlayerCount++] = ParseSoundPlayer(f);
         } else if (strcmp(cmd, "question") == 0) {
             if (curPage->hasQuestion) {
-                tigrError(NULL,
-                          "Attempted to add multiple questions to page %s",
-                          curPage->name);
+                tigrError(NULL, "Attempted to add multiple questions to page %s", curPage->name);
             }
 
             if (curPage->hasCustomNextPage) {
@@ -318,10 +310,8 @@ void LoadData(Data* data, const char* filename) {
             curPage->question = ParseQuestion(f);
         } else if (strcmp(cmd, "npage") == 0) {
             if (curPage->hasQuestion) {
-                tigrError(
-                    NULL,
-                    "Cannot set next page on page %s because it has a question",
-                    curPage->name);
+                tigrError(NULL, "Cannot set next page on page %s because it has a question",
+                          curPage->name);
             }
 
             if (curPage->clickCount > 0) {

@@ -173,4 +173,3 @@ const Text* FindText(const Data* data, const char* name);
 const Sound* FindSound(const Data* data, const char* name);
 
 void DestroyData(Data* data);
-
