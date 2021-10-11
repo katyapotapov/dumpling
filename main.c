@@ -13,10 +13,12 @@
 #include "cute_sound.h"
 #include "data.h"
 #include "graphic.h"
+#include "main.h"
+#include "rect.h"
 #include "tigr.h"
 #include "util.h"
 
-static int FindPageIndex(const Data* data, const char* name) {
+int FindPageIndex(const Data* data, const char* name) {
     for (int i = 0; i < data->pageCount; ++i) {
         if (strcmp(data->pages[i].name, name) == 0) {
             return i;
@@ -26,7 +28,7 @@ static int FindPageIndex(const Data* data, const char* name) {
     return -1;
 }
 
-static const Entity* FindEntity(const Page* page, const char* name) {
+const Entity* FindEntity(const Page* page, const char* name) {
     for (int i = 0; i < page->entCount; ++i) {
         if (strcmp(page->ents[i].name, name) == 0) {
             return &page->ents[i];
@@ -36,7 +38,7 @@ static const Entity* FindEntity(const Page* page, const char* name) {
     return NULL;
 }
 
-static const BoxLayout* FindBox(const Page* page, const char* name) {
+const BoxLayout* FindBox(const Page* page, const char* name) {
     for (int i = 0; i < page->boxCount; ++i) {
         if (strcmp(page->boxes[i].name, name) == 0) {
             return &page->boxes[i];
@@ -46,7 +48,7 @@ static const BoxLayout* FindBox(const Page* page, const char* name) {
     return NULL;
 }
 
-static void MeasureBox(const BoxLayout* box, const Data* data, const Page* page, int* w, int* h) {
+void MeasureBox(const BoxLayout* box, const Data* data, const Page* page, int* w, int* h) {
     int ww = 0;
     int hh = 0;
 
@@ -163,39 +165,47 @@ static void DrawEntity(Tigr* screen, const Data* data, float pageTime, const Ent
     DrawGraphic(screen, data, pageTime, ent->resName, ent->x, ent->y, mx, my);
 }
 
+void GetEntityBounds(Tigr* screen, const Data* data, const Page* page, const Entity* ent,
+                     IntRect* rect, int mx, int my) {
+    MeasureGraphic(data, ent->resName, &rect->w, &rect->h);
+
+    int mmx = 0;
+    int mmy = 0;
+
+    if (page->hasMover && strcmp(ent->name, page->mover.objectName) == 0) {
+        mmx = mx;
+        mmy = my;
+    }
+
+    rect->x = HandleSpecialPos(ent->x, screen->w, rect->w) + mmx;
+    rect->y = HandleSpecialPos(ent->y, screen->h, rect->h) + mmy;
+}
+
+void GetBoxBounds(Tigr* screen, const Data* data, const Page* page, const BoxLayout* box,
+                  IntRect* rect, int mx, int my) {
+    // TODO Make this work with nested boxes
+    MeasureBox(box, data, page, &rect->w, &rect->h);
+
+    // TODO Throw an error if the box position is hidden (most likely a
+    // nested box)
+
+    rect->x = HandleSpecialPos(box->x, screen->w, rect->w);
+    rect->y = HandleSpecialPos(box->y, screen->h, rect->h);
+}
+
 static void GetObjectBounds(Tigr* screen, const Data* data, const Page* page, const char* name,
-                            int* x, int* y, int* w, int* h, int mx, int my) {
+                            IntRect* rect, int mx, int my) {
     const Entity* ent = FindEntity(page, name);
 
     if (ent) {
-        MeasureGraphic(data, ent->resName, w, h);
-
-        int mmx = 0;
-        int mmy = 0;
-
-        if (page->hasMover && strcmp(ent->name, page->mover.objectName) == 0) {
-            mmx = mx;
-            mmy = my;
-        }
-
-        *x = HandleSpecialPos(ent->x, screen->w, *w) + mmx;
-        *y = HandleSpecialPos(ent->y, screen->h, *h) + mmy;
-
+        GetEntityBounds(screen, data, page, ent, rect, mx, my);
         return;
     }
 
     const BoxLayout* box = FindBox(page, name);
 
     if (box) {
-        // TODO Make this work with nested boxes
-        MeasureBox(box, data, page, w, h);
-
-        // TODO Throw an error if the box position is hidden (most likely a
-        // nested box)
-
-        *x = HandleSpecialPos(box->x, screen->w, *w);
-        *y = HandleSpecialPos(box->y, screen->h, *h);
-
+        GetBoxBounds(screen, data, page, box, rect, mx, my);
         return;
     }
 }
@@ -281,40 +291,29 @@ static void HandlePageInput(Tigr* screen, const Data* data, const Page* page, in
     for (int i = 0; i < page->clickCount; ++i) {
         const Clickable* click = &page->clicks[i];
 
-        int x = 0;
-        int y = 0;
-        int w = 0;
-        int h = 0;
+        IntRect rect;
 
-        GetObjectBounds(screen, data, page, click->objectName, &x, &y, &w, &h, *mx, *my);
+        GetObjectBounds(screen, data, page, click->objectName, &rect, *mx, *my);
 
-        if (mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h) {
+        if (IntRectContainsPoint(rect, mouseX, mouseY)) {
             if (mb) {
                 *newPageIndex = FindPageIndex(data, click->clickPageName);
             }
 
-            tigrRect(screen, x, y, w, h, tigrRGBA(255, 255, 255, 100));
+            tigrRect(screen, rect.x, rect.y, rect.w, rect.h, tigrRGBA(255, 255, 255, 100));
         }
     }
 
     for (int i = 0; i < page->touchCount; ++i) {
         const Touchable* touch = &page->touches[i];
 
-        int ax = 0;
-        int ay = 0;
-        int aw = 0;
-        int ah = 0;
+        IntRect a = {0};
+        IntRect b = {0};
 
-        int bx = 0;
-        int by = 0;
-        int bw = 0;
-        int bh = 0;
+        GetObjectBounds(screen, data, page, touch->toucherObjectName, &a, *mx, *my);
+        GetObjectBounds(screen, data, page, touch->touchableObjectName, &b, *mx, *my);
 
-        GetObjectBounds(screen, data, page, touch->toucherObjectName, &ax, &ay, &aw, &ah, *mx, *my);
-        GetObjectBounds(screen, data, page, touch->touchableObjectName, &bx, &by, &bw, &bh, *mx,
-                        *my);
-
-        if (ax + aw < bx || ay + ah < by || bx + bw < ax || by + bh < ay) {
+        if (!IntRectCollidesIntRect(a, b)) {
             continue;
         }
 
