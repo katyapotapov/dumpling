@@ -65,7 +65,7 @@ static Text ParseText(FILE* f, bool multi) {
         while (!feof(f)) {
             fgets(buf, MAX_TEXT_LEN, f);
 
-            if (strcmp(buf, "endtext\n") == 0) {
+            if (strcmp(buf, "endtext\n") == 0 || strcmp(buf, "endtext\r\n") == 0) {
                 break;
             }
 
