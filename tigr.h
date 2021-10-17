@@ -37,9 +37,8 @@ typedef struct {
 } TPixel;
 
 // Window flags.
-#define TIGR_FIXED 0  // window's bitmap is a fixed size (default)
-#define TIGR_AUTO \
-    1  // window's bitmap will automatically resize after each tigrUpdate
+#define TIGR_FIXED 0      // window's bitmap is a fixed size (default)
+#define TIGR_AUTO 1       // window's bitmap will automatically resize after each tigrUpdate
 #define TIGR_2X 2         // always enforce (at least) 2X pixel scale
 #define TIGR_3X 4         // always enforce (at least) 3X pixel scale
 #define TIGR_4X 8         // always enforce (at least) 4X pixel scale
@@ -108,17 +107,15 @@ void tigrLine(Tigr *bmp, int x0, int y0, int x1, int y1, TPixel color);
 // dx/dy = dest co-ordinates
 // sx/sy = source co-ordinates
 // w/h   = width/height
-void tigrBlit(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w,
-              int h);
+void tigrBlit(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w, int h);
 
 // Same as tigrBlit, but blends with the bitmap alpha channel,
 // and uses the 'alpha' variable to fade out.
-void tigrBlitAlpha(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w,
-                   int h, float alpha);
+void tigrBlitAlpha(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w, int h,
+                   float alpha);
 
 // Same as tigrBlit, but tints the source bitmap with a color.
-void tigrBlitTint(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w,
-                  int h, TPixel tint);
+void tigrBlitTint(Tigr *dest, Tigr *src, int dx, int dy, int sx, int sy, int w, int h, TPixel tint);
 
 // Helper for making colors.
 TIGR_INLINE TPixel tigrRGB(unsigned char r, unsigned char g, unsigned char b) {
@@ -131,8 +128,7 @@ TIGR_INLINE TPixel tigrRGB(unsigned char r, unsigned char g, unsigned char b) {
 }
 
 // Helper for making colors.
-TIGR_INLINE TPixel tigrRGBA(unsigned char r, unsigned char g, unsigned char b,
-                            unsigned char a) {
+TIGR_INLINE TPixel tigrRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
     TPixel p;
     p.r = r;
     p.g = g;
@@ -164,8 +160,7 @@ TigrFont *tigrLoadFont(Tigr *bitmap, int codepage);
 void tigrFreeFont(TigrFont *font);
 
 // Prints UTF-8 text onto a bitmap.
-void tigrPrint(Tigr *dest, TigrFont *font, int x, int y, TPixel color,
-               const char *text, ...);
+void tigrPrint(Tigr *dest, TigrFont *font, int x, int y, TPixel color, const char *text, ...);
 
 // Returns the width/height of a string.
 int tigrTextWidth(TigrFont *font, const char *text);
