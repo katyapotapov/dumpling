@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
     int mx = 0;
     int my = 0;
 
-    Tigr* screen = tigrWindow(640, 480, "Dumpling", 0);
+    Tigr* screen = tigrWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Dumpling", 0);
 
 #ifdef __linux__
     if (SDL_Init(SDL_INIT_AUDIO) != 0) {

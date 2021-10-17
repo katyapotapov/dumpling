@@ -23,21 +23,19 @@ static void GetTimedText(const Text* text, char* dest, float pageTime) {
 }
 
 int HandleSpecialPos(int pos, int screenSize, int size) {
-    switch (pos) {
-        case ENT_POS_CENTER:
-            return screenSize / 2 - size / 2;
-
-        case ENT_POS_LEFT_PAD:
-            return 8;
-
-        case ENT_POS_RIGHT_PAD:
-            return screenSize - size - 8;
-
-        case ENT_POS_HIDDEN:
-            return -size;
-
-        default:
-            return pos;
+    if (pos == ENT_POS_HIDDEN) {
+        return -size;
+    } else if (pos > ENT_POS_RIGHT_PAD - WINDOW_WIDTH && pos < ENT_POS_RIGHT_PAD + WINDOW_WIDTH) {
+        int rightPad = screenSize - size - 8;
+        return rightPad + pos - ENT_POS_RIGHT_PAD;    
+    } else if (pos > ENT_POS_LEFT_PAD - WINDOW_WIDTH && pos < ENT_POS_LEFT_PAD + WINDOW_WIDTH) {
+        int leftPad = 8;
+        return leftPad + pos - ENT_POS_RIGHT_PAD;    
+    } else if (pos > ENT_POS_CENTER - WINDOW_WIDTH && pos < ENT_POS_CENTER + WINDOW_WIDTH) {
+        int center = screenSize / 2 - size / 2;
+        return center + pos - ENT_POS_CENTER;    
+    } else {
+        return pos;
     }
 }
 

@@ -9,7 +9,7 @@
 #define MAX_IMAGES 128
 
 #define MAX_TEXTS 1024
-#define MAX_TEXT_LEN 256
+#define MAX_TEXT_LEN 600
 
 #define MAX_SOUNDS 32
 
@@ -26,10 +26,17 @@
 
 #define MAX_PAGES 1024
 
-#define ENT_POS_CENTER -1000
-#define ENT_POS_LEFT_PAD -1001
-#define ENT_POS_RIGHT_PAD -1002
-#define ENT_POS_HIDDEN -1003
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
+
+// Special ranges used later in rendering to position objects relative to the screen.
+// Each one of these values defines a range [value - WINDOW_WIDTH, value + WINDOW_WIDTH].
+// So an object at ENT_POS_CENTER will be at the center of the screen.
+
+#define ENT_POS_CENTER (-WINDOW_WIDTH)
+#define ENT_POS_LEFT_PAD (ENT_POS_CENTER - WINDOW_WIDTH * 2)
+#define ENT_POS_RIGHT_PAD (ENT_POS_LEFT_PAD - WINDOW_WIDTH * 2)
+#define ENT_POS_HIDDEN (ENT_POS_RIGHT_PAD - WINDOW_WIDTH)
 
 typedef struct Tigr Tigr;
 
