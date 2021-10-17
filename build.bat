@@ -7,6 +7,9 @@ if not defined DevEnvDir (
 
 cd /d %CURR_DIR%
 
+REM The above doesn't always do the trick - this does the same thing
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+
 SET headers=/I"%CURR_DIR%"
 SET opts= -Zi /MP4 /W3 /EHsc /Fedumpling.exe /D_CRT_SECURE_NO_WARNINGS /FC /std:c++latest
 SET sources=..\*.c
