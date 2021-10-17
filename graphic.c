@@ -30,7 +30,7 @@ int HandleSpecialPos(int pos, int screenSize, int size) {
         return rightPad + pos - ENT_POS_RIGHT_PAD;    
     } else if (pos > ENT_POS_LEFT_PAD - WINDOW_WIDTH && pos < ENT_POS_LEFT_PAD + WINDOW_WIDTH) {
         int leftPad = 8;
-        return leftPad + pos - ENT_POS_RIGHT_PAD;    
+        return leftPad + pos - ENT_POS_LEFT_PAD;    
     } else if (pos > ENT_POS_CENTER - WINDOW_WIDTH && pos < ENT_POS_CENTER + WINDOW_WIDTH) {
         int center = screenSize / 2 - size / 2;
         return center + pos - ENT_POS_CENTER;    
