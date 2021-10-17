@@ -33,7 +33,7 @@
 // Each one of these values defines a range [value - WINDOW_WIDTH, value + WINDOW_WIDTH].
 // So an object at ENT_POS_CENTER will be at the center of the screen.
 
-#define ENT_POS_CENTER (-WINDOW_WIDTH)
+#define ENT_POS_CENTER (-WINDOW_WIDTH * 2)
 #define ENT_POS_LEFT_PAD (ENT_POS_CENTER - WINDOW_WIDTH * 2)
 #define ENT_POS_RIGHT_PAD (ENT_POS_LEFT_PAD - WINDOW_WIDTH * 2)
 #define ENT_POS_HIDDEN (ENT_POS_RIGHT_PAD - WINDOW_WIDTH)
