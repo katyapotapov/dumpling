@@ -14,7 +14,6 @@ set(SOURCES
     data.c
     graphic.c
     main.c
-    microui.c
     tigr.c
     util.c)
 
